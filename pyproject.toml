@@ -1,0 +1,17 @@
+[tool.briefcase]
+project_name = "Galactic Assault"
+bundle = "com.spaceshooter"
+version = "1.0.0"
+url = "https://spaceshooter.com"
+license.file = "LICENSE"
+author = "Your Name"
+author_email = "you@email.com"
+
+[tool.briefcase.app.galacticassault]
+formal_name = "Galactic Assault"
+description = "Epic neon space shooter game"
+sources = ["galacticassault"]
+requires = ["pygame"]
+
+[tool.briefcase.app.galacticassault.android]
+requires = ["pygame"]
