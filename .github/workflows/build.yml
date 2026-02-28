@@ -17,36 +17,47 @@ jobs:
         sudo apt-get install -y python3-pip build-essential git zip unzip openjdk-17-jdk autoconf libtool pkg-config zlib1g-dev libncurses5-dev cmake libffi-dev libssl-dev patch
         pip install buildozer==1.5.0 cython==0.29.33
 
-    - name: Fix sdkmanager path
+    - name: Fix sdkmanager
       run: |
         mkdir -p /usr/local/lib/android/sdk/tools/bin
-        ln -sf /usr/local/lib/android/sdk/cmdline-tools/latest/bin/sdkmanager /usr/local/lib/android/sdk/tools/bin/sdkmanager
-        ls /usr/local/lib/android/sdk/tools/bin/
-        sdkmanager --version || echo "checking alt path"
-        ls /usr/local/lib/android/sdk/cmdline-tools/ || true
-
-    - name: Fix sqlite3 recipe
-      run: |
-        pip install python-for-android
-        P4A_PATH=$(python -c "import pythonforandroid; import os; print(os.path.dirname(pythonforandroid.__file__))")
-        SQLITE_RECIPE="$P4A_PATH/recipes/sqlite3"
-        curl -L "https://www.sqlite.org/2023/sqlite-amalgamation-3430200.zip" -o sqlite.zip
-        unzip sqlite.zip
-        cp sqlite-amalgamation-3430200/sqlite3.c "$SQLITE_RECIPE/sqlite3.c"
-        cp sqlite-amalgamation-3430200/sqlite3.h "$SQLITE_RECIPE/sqlite3.h"
-        ls "$SQLITE_RECIPE"
+        ln -sf $(find /usr/local/lib/android/sdk/cmdline-tools -name sdkmanager | head -1) /usr/local/lib/android/sdk/tools/bin/sdkmanager
 
     - name: Create buildozer.spec
       run: |
         printf '[app]\ntitle = Galactic Assault\npackage.name = galacticassault\npackage.domain = com.spaceshooter\nsource.dir = .\nsource.include_exts = py,json\nversion = 1.0\nrequirements = python3,kivy,pygame==2.1.3\norientation = portrait\nfullscreen = 0\nandroid.permissions = INTERNET\nandroid.api = 33\nandroid.minapi = 21\nandroid.ndk = 25b\nandroid.ndk_api = 21\nandroid.archs = arm64-v8a\nandroid.accept_sdk_license = True\nandroid.allow_backup = True\nandroid.sdk_path = /usr/local/lib/android/sdk\nandroid.ndk_path = /usr/local/lib/android/sdk/ndk/27.3.13750724\n\n[buildozer]\nlog_level = 2\nwarn_on_root = 0\n' > buildozer.spec
-        cat buildozer.spec
 
-    - name: Verify main.py
+    - name: Download sqlite3 source
       run: |
-        ls -la
-        head -3 main.py
+        curl -L "https://www.sqlite.org/2023/sqlite-amalgamation-3430200.zip" -o sqlite.zip
+        unzip sqlite.zip
+        echo "SQLite source ready"
+        ls sqlite-amalgamation-3430200/
 
-    - name: Build APK
+    - name: First buildozer run to clone p4a then fix sqlite3
+      run: |
+        # Run buildozer just enough to clone p4a - it will fail but p4a will be cloned
+        timeout 120 buildozer android debug 2>&1 || true
+        
+        # Find where p4a cloned sqlite3 recipe
+        SQLITE_BUILD=$(find .buildozer -path "*/sqlite3/jni" -type d 2>/dev/null | head -1)
+        echo "Found sqlite3 jni at: $SQLITE_BUILD"
+        
+        if [ -n "$SQLITE_BUILD" ]; then
+          cp sqlite-amalgamation-3430200/sqlite3.c "$SQLITE_BUILD/../sqlite3.c"
+          echo "Copied sqlite3.c to build dir"
+          ls "$SQLITE_BUILD/../"
+        fi
+        
+        # Also fix in p4a recipe folder
+        P4A_SQLITE=$(find .buildozer -path "*/recipes/sqlite3" -type d 2>/dev/null | head -1)
+        echo "Found p4a sqlite3 recipe at: $P4A_SQLITE"
+        if [ -n "$P4A_SQLITE" ]; then
+          cp sqlite-amalgamation-3430200/sqlite3.c "$P4A_SQLITE/sqlite3.c"
+          cp sqlite-amalgamation-3430200/sqlite3.h "$P4A_SQLITE/sqlite3.h"
+          echo "Copied sqlite3 to p4a recipe"
+        fi
+
+    - name: Build APK final
       run: buildozer android debug 2>&1
       env:
         JAVA_HOME: /usr/lib/jvm/temurin-17-jdk-amd64
