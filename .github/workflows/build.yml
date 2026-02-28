@@ -16,7 +16,7 @@ jobs:
     - name: Install system dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y python3-pip build-essential git zip unzip openjdk-17-jdk autoconf libtool pkg-config zlib1g-dev libncurses5-dev cmake libffi-dev libssl-dev patch
+        sudo apt-get install -y python3-pip build-essential git zip unzip openjdk-17-jdk autoconf libtool pkg-config zlib1g-dev libncurses5-dev cmake libffi-dev libssl-dev patch sqlite3 libsqlite3-dev
 
     - name: Install buildozer
       run: |
@@ -25,7 +25,7 @@ jobs:
 
     - name: Create buildozer.spec
       run: |
-        printf '[app]\ntitle = Galactic Assault\npackage.name = galacticassault\npackage.domain = com.spaceshooter\nsource.dir = .\nsource.include_exts = py,json\nversion = 1.0\nrequirements = python3,kivy,pygame==2.1.3\norientation = portrait\nfullscreen = 0\nandroid.permissions = INTERNET\nandroid.api = 33\nandroid.minapi = 21\nandroid.ndk = 25b\nandroid.ndk_api = 21\nandroid.archs = arm64-v8a\nandroid.accept_sdk_license = True\nandroid.allow_backup = True\np4a.branch = master\n\n[buildozer]\nlog_level = 2\nwarn_on_root = 0\n' > buildozer.spec
+        printf '[app]\ntitle = Galactic Assault\npackage.name = galacticassault\npackage.domain = com.spaceshooter\nsource.dir = .\nsource.include_exts = py,json\nversion = 1.0\nrequirements = python3,kivy,pygame==2.1.3\norientation = portrait\nfullscreen = 0\nandroid.permissions = INTERNET\nandroid.api = 33\nandroid.minapi = 21\nandroid.ndk = 25b\nandroid.ndk_api = 21\nandroid.archs = arm64-v8a\nandroid.accept_sdk_license = True\nandroid.allow_backup = True\np4a.branch = master\np4a.commit = 2b7dcf5\n\n[buildozer]\nlog_level = 2\nwarn_on_root = 0\n' > buildozer.spec
         cat buildozer.spec
 
     - name: Verify main.py
