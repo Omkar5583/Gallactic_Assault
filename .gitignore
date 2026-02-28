@@ -5,3 +5,4 @@ galacticassault/
 .DS_Store
 pyproject.toml
 test.ipynbuildozer.spec
+game_app.tar.gz
