@@ -1,0 +1,7 @@
+.buildozer/
+build/
+logs/
+galacticassault/
+.DS_Store
+pyproject.toml
+test.ipynbuildozer.spec
